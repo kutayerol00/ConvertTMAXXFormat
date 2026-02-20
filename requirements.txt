@@ -2,4 +2,6 @@ streamlit
 pandas
 extract-msg
 pdfplumber
+
 openpyxl
+dateparser
