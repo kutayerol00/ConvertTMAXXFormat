@@ -20,6 +20,7 @@ import re
 import warnings
 import os
 import streamlit as st
+import tempfile
 
 st.set_page_config(page_title="Tarife İşleme", layout="wide")
 
@@ -2928,5 +2929,6 @@ def main():
 if __name__ == "__main__":
     main()
     
+
 
 
