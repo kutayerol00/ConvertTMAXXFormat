@@ -20,6 +20,7 @@ import re
 import warnings
 import os
 
+st.set_page_config(page_title="Tarife İşleme", layout="wide")
 
 
 def final_pol_correction():
@@ -2926,3 +2927,4 @@ def main():
 if __name__ == "__main__":
     main()
     
+
