@@ -2871,64 +2871,91 @@ def ana_islem_dongusu():
     final_pol_correction()
 
 def main():
-    st.set_page_config(page_title="Tarife İşleme", layout="wide")
-    st.title("⚓ Denizcilik Tarife İşleme Uygulaması")
+   st.title("⚓ Denizcilik Tarife İşleme Uygulaması")
     st.write("İşlenecek dosyaları (Excel, PDF, EML, MSG) ve varsa yardımcı dosyaları (Add-on listeleri) buraya sürükleyip bırakın.")
 
-    # Sürükle-bırak ile dosya yükleme alanı (Birden fazla dosya kabul eder)
+    # 1. STREAMLIT HAFIZASI (Session State) OLUŞTURMA
+    # Sayfa yenilense bile dosyaların kaybolmamasını sağlar
+    if 'uretilen_dosyalar' not in st.session_state:
+        st.session_state['uretilen_dosyalar'] = []
+
     uploaded_files = st.file_uploader("Dosyaları Buraya Yükleyin", accept_multiple_files=True)
 
     if uploaded_files:
         if st.button("🚀 İşlemi Başlat"):
-            # Geçici bir klasör oluşturuyoruz
             with tempfile.TemporaryDirectory() as temp_dir:
-                # 1. Yüklenen dosyaları geçici klasöre fiziksel olarak kaydet
                 for uploaded_file in uploaded_files:
                     file_path = os.path.join(temp_dir, uploaded_file.name)
                     with open(file_path, "wb") as f:
                         f.write(uploaded_file.getbuffer())
 
-                # 2. Çalışma dizinini (CWD) bu geçici klasör yap
-                # Bu sayede kodunuzdaki glob.glob() ve os.path işlemleri sorunsuz çalışır
                 original_cwd = os.getcwd()
                 os.chdir(temp_dir)
 
                 try:
-                    with st.spinner("Dosyalar işleniyor, kodunuz çalışıyor... Lütfen bekleyin."):
-                        # 3. Kendi işleyiş mantığınızı tetikleyin
-                        ana_islem_dongusu()
+                    with st.spinner("Dosyalar işleniyor..."):
+                        ana_islem_dongusu() # Sizin kodunuz çalışıyor
                     
-                    # 4. Oluşan CSV dosyalarını tespit et
                     csv_files = glob.glob("*.csv")
                     
                     if csv_files:
                         st.success(f"✅ İşlem tamamlandı! {len(csv_files)} adet çıktı dosyası üretildi.")
                         
-                        # Oluşan her CSV için bir indirme butonu oluştur
+                        # 2. DOSYALARI HAFIZAYA KAYDETME
+                        gecici_hafiza = []
                         for csv_file in csv_files:
                             with open(csv_file, "rb") as f:
-                                file_bytes = f.read() # Bayt olarak oku
-                                
-                            st.download_button(
-                                label=f"📥 İndir: {csv_file}",
-                                data=file_bytes,
-                                file_name=csv_file,
-                                mime="text/csv"
-                            )
+                                gecici_hafiza.append({
+                                    "isim": csv_file,
+                                    "veri": f.read() # Dosyayı bayt olarak okuyup hafızaya alıyoruz
+                                })
+                        
+                        st.session_state['uretilen_dosyalar'] = gecici_hafiza
                     else:
-                        st.warning("⚠️ İşlem tamamlandı ancak hiçbir çıktı (CSV) oluşturulmadı. Yüklenen dosyaları kontrol edin.")
+                        st.warning("⚠️ İşlem tamamlandı ancak çıktı oluşmadı.")
                 
                 except Exception as e:
                     st.error(f"❌ İşlem sırasında bir hata oluştu: {str(e)}")
                 
                 finally:
-                    # İşlem bitince çalışma dizinini mutlaka eski haline geri getir
                     os.chdir(original_cwd)
+
+    # 3. İNDİRME BUTONLARINI GÖSTERME (İşlemi Başlat butonunun DIŞINA alındı)
+    if st.session_state['uretilen_dosyalar']:
+        st.write("---")
+        st.write("### 📂 Üretilen Dosyalar")
+        
+        # BONUS: Tüm dosyaları tek bir ZIP olarak indirme butonu
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            for dosya in st.session_state['uretilen_dosyalar']:
+                zf.writestr(dosya["isim"], dosya["veri"])
+        
+        st.download_button(
+            label="📦 Tüm Dosyaları Tek Seferde İndir (ZIP)",
+            data=zip_buffer.getvalue(),
+            file_name="islenmis_tarifeler.zip",
+            mime="application/zip",
+            type="primary" # Rengini belirgin yapar
+        )
+        
+        st.write("**Veya tek tek indirebilirsiniz:**")
+        
+        # Dosyaları tek tek indirme butonları
+        for dosya in st.session_state['uretilen_dosyalar']:
+            st.download_button(
+                label=f"📥 İndir: {dosya['isim']}",
+                data=dosya["veri"],
+                file_name=dosya["isim"],
+                mime="text/csv",
+                key=dosya["isim"] # Sayfa yenilendiğinde butonların karışmasını önler
+            )
     
     
 if __name__ == "__main__":
     main()
     
+
 
 
 
