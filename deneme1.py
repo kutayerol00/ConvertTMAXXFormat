@@ -2871,8 +2871,8 @@ def ana_islem_dongusu():
     final_pol_correction()
 
 def main():
-   st.title("⚓ Denizcilik Tarife İşleme Uygulaması")
-   st.write("İşlenecek dosyaları (Excel, PDF, EML, MSG) ve varsa yardımcı dosyaları (Add-on listeleri) buraya sürükleyip bırakın.")
+    st.title("⚓ Denizcilik Tarife İşleme Uygulaması")
+    st.write("İşlenecek dosyaları (Excel, PDF, EML, MSG) ve varsa yardımcı dosyaları (Add-on listeleri) buraya sürükleyip bırakın.")
 
     # 1. STREAMLIT HAFIZASI (Session State) OLUŞTURMA
     # Sayfa yenilense bile dosyaların kaybolmamasını sağlar
@@ -2950,11 +2950,11 @@ def main():
                 mime="text/csv",
                 key=dosya["isim"] # Sayfa yenilendiğinde butonların karışmasını önler
             )
-    
-    
+
 if __name__ == "__main__":
     main()
     
+
 
 
 
